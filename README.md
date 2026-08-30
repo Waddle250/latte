@@ -1,5 +1,7 @@
 This is a project that I would love to see used by people. It may be simple, but it sure is useful.
 
+GOAL: 100% Shell
+
 Latte is a package manager that can install .latte files very fast. The reason it's fast? I dunno. Anyways, you can use any of these commands so far on the latest release:
 
 `latte install <path-to-package.latte> |
