@@ -1,9 +1,14 @@
-#!bin/bash
+#!/bin/bash
+
+# If MOCK_ROOT is set in the environment, use it (for testing). 
+# Otherwise, default directly to the actual system root (/).
 TARGET_ROOT="/"
 
 DB_DIR="$TARGET_ROOT/var/lib/latte"
 MANIFEST_DIR="$DB_DIR/manifests"
 DB_FILE="$DB_DIR/installed.db"
+
+# Ensure runtime directories exist on the target system
 mkdir -p "$MANIFEST_DIR"
 touch "$DB_FILE"
 
@@ -24,7 +29,7 @@ install_package() {
         exit 1
     fi
 
-    source "$tmp_dir/metadata.txt"
+    eval $(awk -F'=' '{print $1"=\""$2"\""}' "$tmp_dir/metadata.txt")
     rm -rf "$tmp_dir"
 
     echo "Installing $NAME $VERSION..."
@@ -34,6 +39,84 @@ install_package() {
     if ! grep -q "^$NAME " "$DB_FILE"; then
         echo "$NAME $VERSION" >> "$DB_FILE"
     fi
+
+    echo "Successfully installed $NAME $VERSION"
+}
+
+remove_package() {
+    local pkg_name="$1"
+
+    if ! grep -q "^$pkg_name " "$DB_FILE"; then
+        echo "Error: Package '$pkg_name' is not installed."
+        exit 1
+    fi
+
+    echo "Removing $pkg_name"
+    
+    local manifest="$MANIFEST_DIR/$pkg_name.list"
+    if [ -f "$manifest" ]; then
+        while read -r file; do
+            local target_path="${TARGET_ROOT%/}/$file"
+            
+            if [ -n "$file" ] && [ -f "$target_path" ]; then
+                rm -f "$target_path"
+            elif [ -n "$file" ] && [ -d "$target_path" ]; then
+                rmdir "$target_path" 2>/dev/null
+            fi
+        done < <(tac "$manifest")
+        
+        rm -f "$manifest"
+    fi
+
+    sed -i "/^$pkg_name /d" "$DB_FILE"
+    echo "Successfully removed $pkg_name."
+}
+
+list_packages() {
+    cat $DB_FILE
+}
+
+latte_version() {
+    echo "Latte v1.0 stable | Capuccino"
+}
+
+build_package() {
+    local inputdir="${1%/}"
+    local outputdir="${2%/}"
+
+    mkdir -p "$outputdir"
+    local final_archive="$outputdir.latte"
+
+    echo "Packaging bundle from '$inputdir'..."
+    
+    if tar -czf "$final_archive" -C "$inputdir" .; then
+        echo "Successfully built package: $final_archive"
+        return 0
+    else
+        echo "Error: Failed to create .latte package."
+        return 1
+    fi
+}
+
+
+if [ "$1" == "install" ]; then
+    install_package "$2"
+elif [ "$1" == "list" ]; then
+    list_packages
+elif [ "$1" == "remove" ]; then
+    remove_package "$2"
+elif [ "$1" == "version" ]; then
+    latte_version
+elif [ "$1" == "build" ]; then
+    build_package "$2" "$3"
+else
+    echo "Usage:
+    latte install <package.latte>
+    latte list
+    latte remove <package>
+    latte version
+    latte build <input_directory> <output_directory>"
+fi
 
     echo "Successfully installed $NAME $VERSION"
 }
