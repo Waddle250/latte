@@ -1,14 +1,11 @@
 #!/bin/bash
 
-# If MOCK_ROOT is set in the environment, use it (for testing). 
-# Otherwise, default directly to the actual system root (/).
 TARGET_ROOT="/"
 
 DB_DIR="$TARGET_ROOT/var/lib/latte"
 MANIFEST_DIR="$DB_DIR/manifests"
 DB_FILE="$DB_DIR/installed.db"
 
-# Ensure runtime directories exist on the target system
 mkdir -p "$MANIFEST_DIR"
 touch "$DB_FILE"
 
