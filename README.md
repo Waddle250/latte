@@ -10,6 +10,10 @@ latte list |
 latte version |
 latte build <source-directory> <output-directory>`
 
-Some of these commands might require root permissions, and for good reason. If you'd like to ask for any features or report bugs, just ask under the Issues section. I'll *probably* get to it by the time the sun blows up.
+All of these commands require root permissions, and for good reason. If you'd like to ask for any features or report bugs, just ask under the Issues section. I'll *probably* get to it by the time the sun blows up. (I’ll get to it when I can)
 
 Feel free to uninstall latte if you feel like doing so. It's not like I care... * *sobs* *
+
+>[!IMPORTANT]
+>If you see any bugs, make sure to tell me! I’m pretty new to using bash to make programs, but I’d love to learn through this. Treat me like I’m learning, not like I already know Bash
+> -*Waddle250*
