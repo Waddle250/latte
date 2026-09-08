@@ -8,7 +8,7 @@ DB_FILE="$DB_DIR/installed.db"
 
 
 if (($EUID != 0)); then
-    echo "Please run as root to use Latte"
+    echo "Run as root to use Latte"
     exit 1
 fi
 
@@ -19,7 +19,7 @@ install_package() {
     local pkg_archive="$1"
 
     if [ ! -f "$pkg_archive" ]; then
-        echo "Error: package '$pkg_archive' was not found. If you are using a desktop environment, try dragging in the file for the package argument."
+        echo "Error: package '$pkg_archive' was not found"
         return 1
     fi
 
@@ -38,6 +38,14 @@ install_package() {
         return 1
     fi
 
+    read -p "Do you want to continue with the installation? [y/N]: " usertrustsfile
+    
+    usertrustsfile=$(echo "$usertrustsfile" | tr '[:upper:]' '[:lower:]')
+    
+    if [[ "$usertrustsfile" != "y" && "$usertrustsfile" != "yes" ]]; then
+        echo "Installation aborted by user"
+        return 1
+    fi
 
     NAME=$(grep -E '^NAME=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2- | tr -d '"')
     VERSION=$(grep -E '^VERSION=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2- | tr -d '"')
@@ -47,7 +55,7 @@ install_package() {
     [[ "$VERSION" =~ ^[a-zA-Z0-9.-]+$ ]] || { echo "Error: Invalid VERSION (only alphanumeric, ., _, - allowed)"; exit 1; }
     rm -rf "$tmp_dir"
 
-    echo "Installing $NAME $VERSION
+    echo "Installing $NAME $VERSION..."
 
     tar --exclude='metadata.txt' -xzvf "$pkg_archive" -C "$TARGET_ROOT" | 
         sed -e 's|^\./||' -e 's|^\.||' | 
@@ -73,6 +81,7 @@ remove_package() {
     if [ -f "$manifest" ]; then
         while read -r file; do
             local target_path="${TARGET_ROOT%/}/$file"
+            echo "Removed traces of $pkg_name from $file"
             
             if [ -n "$file" ] && [ -f "$target_path" ]; then
                 rm -f "$target_path"
@@ -101,7 +110,7 @@ build_package() {
     local outputdir="$2"
 
     if [[ ! -d "$inputdir" ]]; then
-        echo "Directory $inputdir not found. Make sure the path to the folder is correct."
+        echo "directory $inputdir not found"
         return 1
     fi
 
@@ -139,9 +148,9 @@ elif [ "$1" == "build" ]; then
     build_package "$2" "$3"
 else
     echo "Usage:
-    latte install <package.latte> | Installs a .latte package
-    latte list | Lists all of the packages you have installed with latte
-    latte remove <package> | Removes a package that was installed with latte
-    latte version | Displays the version of latte currently installed
-    latte build <input_directory> <output_directory>" | Builds a .latte file from a directory and outputs it into another directory..
+    latte install <package.latte>
+    latte list
+    latte remove <package>
+    latte version
+    latte build <input_directory> <output_directory>"
 fi
