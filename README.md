@@ -16,4 +16,4 @@ Feel free to uninstall latte if you feel like doing so. It's not like I care... 
 
 >[!IMPORTANT]
 >If you see any bugs, make sure to tell me! I’m pretty new to using bash to make programs, but I’d love to learn through this. Treat me like I’m learning, not like I already know Bash
-> -*Waddle250*
+>-*Waddle250*
