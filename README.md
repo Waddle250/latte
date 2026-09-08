@@ -5,9 +5,13 @@ GOAL: 100% Shell
 Latte is a package manager that can install .latte files very fast. The reason it's fast? I dunno. Anyways, you can use any of these commands so far on the latest release:
 
 `latte install <path-to-package.latte>`
+
 `latte remove <name-of-package>`
+
 `latte list`
+
 `latte version`
+
 `latte build <source-directory> <output-directory>`
 
 All of these commands require root permissions, and for good reason. If you'd like to ask for any features or report bugs, just ask under the Issues section. I'll *probably* get to it by the time the sun blows up. (I’ll get to it when I can)
