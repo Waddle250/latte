@@ -43,7 +43,7 @@ install_package() {
     VERSION=$(grep -E '^VERSION=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2- | tr -d '"')
 
     echo "Package to install:"
-    echo "$NAME"
+    echo -e "\e[34m$NAME\e[0m"
     read -p "Do you want to continue with the installation? [y/N]: " usertrustsfile
     
     usertrustsfile=$(echo "$usertrustsfile" | tr '[:upper:]' '[:lower:]')
