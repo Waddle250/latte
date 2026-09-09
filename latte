@@ -38,6 +38,12 @@ install_package() {
         return 1
     fi
 
+    
+    NAME=$(grep -E '^NAME=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2- | tr -d '"')
+    VERSION=$(grep -E '^VERSION=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2- | tr -d '"')
+
+    echo "Package to install:"
+    echo "$NAME"
     read -p "Do you want to continue with the installation? [y/N]: " usertrustsfile
     
     usertrustsfile=$(echo "$usertrustsfile" | tr '[:upper:]' '[:lower:]')
@@ -47,11 +53,6 @@ install_package() {
         return 1
     fi
 
-    NAME=$(grep -E '^NAME=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2- | tr -d '"')
-    VERSION=$(grep -E '^VERSION=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2- | tr -d '"')
-
-    [[ -z "$NAME" || -z "$VERSION" ]] && { echo "Error: NAME or VERSION missing in metadata.txt"; exit 1; }
-    [[ "$NAME" =~ ^[a-zA-Z0-9._-]+$ ]] || { echo "Error: Invalid NAME (only alphanumeric, ., , - allowed)"; exit 1; }
     [[ "$VERSION" =~ ^[a-zA-Z0-9.-]+$ ]] || { echo "Error: Invalid VERSION (only alphanumeric, ., _, - allowed)"; exit 1; }
     rm -rf "$tmp_dir"
 
