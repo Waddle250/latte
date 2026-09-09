@@ -1,4 +1,4 @@
-This is a project that I would love to see used by people. It may be simple, but it sure is useful when I've needed it.
+It's a package manager :O
 
 GOAL: 100% Shell
 
