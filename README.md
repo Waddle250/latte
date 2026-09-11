@@ -21,6 +21,6 @@ All of these commands require root permissions, and for good reason. If you'd li
 Feel free to uninstall latte if you feel like doing so. It's not like I care... * *sobs* *
 
 >[!IMPORTANT]
->If you see any bugs, make sure to tell me! I’m pretty new to using bash to make programs, but I’d love to learn through this. Treat me like I’m learning, not like I already know Bash
+>If you see any bugs, make sure to tell me! I’m pretty new to using bash to make programs, but I’d love to learn through this. Treat me like I’m learning, not like I already know Bash. Also, if there is no software that support it, who's going to use it?
 >
 >-*Waddle250*
