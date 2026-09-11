@@ -1,0 +1,1 @@
+It's always good practice to check if what you are installing is legitimate or not. You are encouraged to open up the .latte package you are trying to install and check every file in there DOES NOT contain malware.
