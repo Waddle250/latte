@@ -3,7 +3,7 @@
   <h1 align="center">Latte</h1>
 </p>
 
->[!IMPORANT]
+>[!TIP]
 >If nobody adds support for Latte, who will?
 
 GOAL: 100% Shell
