@@ -1,5 +1,14 @@
-> [!IMPORTANT] This is important.
+>[!NOTE]
+>This is a note.
 
-> [!WARNING] This is a warning.
+>[!TIP]
+>This is a tip.
 
-> [!CAUTION] This is a caution.
+>[!IMPORTANT]
+>This is important.
+
+>[!WARNING]
+>This is a warning.
+
+>[!CAUTION]
+>This is a caution.
