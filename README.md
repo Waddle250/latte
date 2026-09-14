@@ -1,6 +1,6 @@
 <p align="center">
   <img align="center" width="367" height="267" alt="latte-brown" src="https://github.com/user-attachments/assets/2064e54b-e50d-41a3-a59e-687f38ae6fa8" />
-  ###Latte
+  <h1 align="center">Latte</h1>
 </p>
 
 GOAL: 100% Shell
