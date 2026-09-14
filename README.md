@@ -3,6 +3,9 @@
   <h1 align="center">Latte</h1>
 </p>
 
+>[!IMPORANT]
+>### If nobody adds support, who will?
+
 GOAL: 100% Shell
 
 Latte is a package manager that can install .latte files. Anyways, you can use any of these commands so far on the latest release:
