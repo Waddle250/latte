@@ -43,7 +43,7 @@ install_package() {
     VERSION=$(grep -E '^VERSION=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2- | tr -d '"')
 
     echo "Package to install:"
-    echo -e "\e[34m$NAME\e[0m"
+    echo -e "\e[34m$NAME   $VERSION\e[0m"
     read -p "Do you want to continue with the installation? [y/N]: " usertrustsfile
     
     usertrustsfile=$(echo "$usertrustsfile" | tr '[:upper:]' '[:lower:]')
@@ -103,7 +103,7 @@ list_packages() {
 }
 
 latte_version() {
-    echo "Latte v0.2.2.1 stable | Capuccino"
+    echo "Latte 0.2.3 stable | Capuccino"
 }
 
 build_package() {
