@@ -3,9 +3,6 @@
   <h1 align="center">Latte</h1>
 </p>
 
->[!NOTE]
->If nobody adds support for Latte, who will?
-
 GOAL: 100% Shell
 
 Latte is a package manager that can install .latte files. Anyways, you can use any of these commands so far on the latest release:
@@ -30,3 +27,6 @@ Feel free to uninstall latte if you feel like doing so. It's not like I care... 
 >If you see any bugs, make sure to tell me! I’m pretty new to using bash to make programs, but I’d love to learn through this. Treat me like I’m learning, not like I already know Bash. Also, if there is no software that support it, who's going to use it?
 >
 >-*Waddle250*
+
+>[!NOTE]
+>If nobody adds support for Latte, who will?
