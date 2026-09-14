@@ -4,7 +4,7 @@
 </p>
 
 >[!IMPORANT]
->### If nobody adds support, who will?
+>If nobody adds support for Latte, who will?
 
 GOAL: 100% Shell
 
