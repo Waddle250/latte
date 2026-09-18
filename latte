@@ -117,13 +117,8 @@ build_package() {
 
     local final_archive="$outputdir"
 
-    if [[ "$outputdir" == *.latte ]]; then
         final_archive="$outputdir"
-        mkdir -p "$(dirname "$final_archive")"
-    else
-        mkdir -p "$outputdir"
-        final_archive="${outputdir%/}/$(basename "$inputdir").latte"
-    fi
+        mkdir -p "$(dirname "$final_archive" + ".latte")"
 
     echo "Packaging bundle from '$inputdir'..."
     
