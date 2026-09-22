@@ -29,4 +29,8 @@ Feel free to uninstall latte if you feel like doing so. It's not like I care... 
 >-*Waddle250*
 
 >[!NOTE]
->If you like this, please consider supporting latte by having a .latte package in your release if you own any projects that are meant to be installed!
+>If you like this, please consider supporting latte by having a .latte package in your releases if you own any projects that are meant to be installed!
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/chart?repos=waddle250/latte&type=date&legend=top-left)](https://www.star-history.com/?repos=waddle250%2Flatte&type=date&legend=top-left)
