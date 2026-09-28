@@ -377,6 +377,7 @@ install_package() {
 }
 
 remove_package() {
+    check_sudo
     local pkg_name="$1"
 
     if ! db_lock; then
