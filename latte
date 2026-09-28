@@ -5,7 +5,6 @@ TARGET_ROOT="/"
 DB_DIR="$TARGET_ROOT/var/lib/latte"
 MANIFEST_DIR="$DB_DIR/manifests"
 DB_FILE="$DB_DIR/installed.db"
-INSTALL_TMP_DIR=""
 
 check_sudo() {
     if (($EUID != 0)); then
@@ -19,210 +18,18 @@ check_sudo() {
 mkdir -p "$MANIFEST_DIR"
 touch "$DB_FILE"
 
-pkg_exists() {
-    local search_name="$1"
-    local line=""
-    local entry_name=""
-    while IFS= read -r line || [ -n "$line" ]; do
-        entry_name=${line%% *}
-        if [ "$entry_name" = "$search_name" ]; then
-            return 0
-        fi
-    done < "$DB_FILE"
-    return 1
-}
-
-db_remove_entry() {
-    local remove_name="$1"
-    local tmp_db=""
-    local line=""
-    local entry_name=""
-    tmp_db=$(mktemp -p "$DB_DIR") || {
-        echo 'Error: unable to create temp db file'
-        return 1
-    }
-    chmod 600 -- "$tmp_db"
-    while IFS= read -r line || [ -n "$line" ]; do
-        entry_name=${line%% *}
-        if [ "$entry_name" != "$remove_name" ] && [ -n "$line" ]; then
-            printf '%s\n' "$line" >> "$tmp_db"
-        fi
-    done < "$DB_FILE"
-    mv -f -- "$tmp_db" "$DB_FILE" || {
-        rm -f -- "$tmp_db"
-        echo 'Error: unable to update database'
-        return 1
-    }
-}
-
-db_upsert_entry() {
-    local upsert_name="$1"
-    local upsert_version="$2"
-    local tmp_db=""
-    local line=""
-    local entry_name=""
-    tmp_db=$(mktemp -p "$DB_DIR") || {
-        echo 'Error: unable to create temp db file'
-        return 1
-    }
-    chmod 600 -- "$tmp_db"
-    while IFS= read -r line || [ -n "$line" ]; do
-        entry_name=${line%% *}
-        if [ "$entry_name" != "$upsert_name" ] && [ -n "$line" ]; then
-            printf '%s\n' "$line" >> "$tmp_db"
-        fi
-    done < "$DB_FILE"
-    printf '%s %s\n' "$upsert_name" "$upsert_version" >> "$tmp_db"
-    mv -f -- "$tmp_db" "$DB_FILE" || {
-        rm -f -- "$tmp_db"
-        echo 'Error: unable to update database'
-        return 1
-    }
-}
-
-db_lock() {
-    if ! command -v flock >/dev/null 2>&1; then
-        echo 'Warning: flock unavailable, proceeding without lock' >&2
-        return 0
-    fi
-    if ! exec 200>"$DB_DIR/.lock"; then
-        echo 'Error: unable to open lock file' >&2
-        return 1
-    fi
-    if ! flock -n 200; then
-        echo 'Error: another latte process holds the lock' >&2
-        exec 200>&-
-        return 1
-    fi
-}
-
-db_unlock() {
-    if ! command -v flock >/dev/null 2>&1; then
-        return 0
-    fi
-    if { true >&200; } 2>/dev/null; then
-        flock -u 200
-        exec 200>&-
-    fi
-}
-
-validate_archive_contents() {
-    local archive_path="$1"
-    local list_output=""
-    local verbose_output=""
-    if ! list_output=$(tar -P -tzf "$archive_path" 2>/dev/null); then
-        echo "Error: unable to list package contents"
-        return 1
-    fi
-    local entry=""
-    while IFS= read -r entry || [ -n "$entry" ]; do
-        case "$entry" in
-            /*)
-                echo "Error: package contains absolute path '$entry'"
-                return 1
-                ;;
-        esac
-        case "$entry" in
-            ../*|*/../*|*/..|..)
-                echo "Error: package contains parent reference '$entry'"
-                return 1
-                ;;
-        esac
-    done <<< "$list_output"
-    if ! verbose_output=$(tar -P -tzvf "$archive_path" 2>/dev/null); then
-        echo 'Error: unable to list package contents'
-        return 1
-    fi
-    local vline=""
-    while IFS= read -r vline || [ -n "$vline" ]; do
-        case "$vline" in
-            l*|h*|c*|b*|p*)
-                echo "Error: package contains unsafe special file '$vline'"
-                return 1
-                ;;
-        esac
-        case "$vline" in
-            *' link to '*|*' -> '*)
-                echo "Error: package contains link '$vline'"
-                return 1
-                ;;
-        esac
-    done <<< "$verbose_output"
-    return 0
-}
-
-verify_package_checksum() {
-    local archive_path="$1"
-    local require_flag="$2"
-    local checksum_path="$archive_path.sha256"
-    if [ ! -f "$checksum_path" ]; then
-        if [ "$require_flag" = '1' ] || [ "${LATTE_REQUIRE_CHECKSUM:-}" = '1' ] || [ "${LATTE_STRICT:-}" = '1' ]; then
-            echo 'Error: checksum file missing but checksum is required'
-            return 1
-        fi
-        echo 'Warning: checksum file missing, skipping verification' >&2
-        return 0
-    fi
-    if ! command -v sha256sum >/dev/null 2>&1; then
-        echo "Error: checksum file exists but sha256sum is unavailable"
-        return 1
-    fi
-    local expected=""
-    local actual=""
-    expected=$(cut -d ' ' -f1 < "$checksum_path")
-    actual=$(sha256sum "$archive_path" | cut -d ' ' -f1)
-    if [ -z "$expected" ] || [ -z "$actual" ]; then
-        echo "Error: unable to verify checksum"
-        return 1
-    fi
-    case "$expected" in
-        *[!0-9a-fA-F]*|'')
-            echo 'Error: invalid checksum format'
-            return 1
-            ;;
-    esac
-    if [ "${#expected}" -ne 64 ]; then
-        echo 'Error: invalid checksum format'
-        return 1
-    fi
-    if [ "$expected" != "$actual" ]; then
-        echo "Error: checksum mismatch, package may be tampered"
-        return 1
-    fi
-    return 0
-}
-
 install_package() {
     check_sudo
     local pkg_archive="$1"
-    local install_flag="$2"
-    local extra_flag="$3"
-    local require_checksum='0'
-    if [ "$install_flag" = '--require-checksum' ] || [ "$extra_flag" = '--require-checksum' ]; then
-        require_checksum='1'
-    fi
 
     if [ ! -f "$pkg_archive" ]; then
         echo "Error: package '$pkg_archive' was not found"
         return 1
     fi
 
-    if ! verify_package_checksum "$pkg_archive" "$require_checksum"; then
-        return 1
-    fi
+    local tmp_dir=$(mktemp -d)
 
-    if ! validate_archive_contents "$pkg_archive"; then
-        return 1
-    fi
-
-    local tmp_dir=""
-    tmp_dir=$(mktemp -d) || {
-        echo 'Error: unable to create temp dir'
-        return 1
-    }
-
-    INSTALL_TMP_DIR="$tmp_dir"
-    trap 'rm -rf -- "$INSTALL_TMP_DIR"' RETURN
+    trap 'rm -rf "$tmp_dir"' RETURN
 
     tar -xzf "$pkg_archive" -C "$tmp_dir" metadata.txt ./metadata.txt 2>/dev/null
 
@@ -235,143 +42,32 @@ install_package() {
         return 1
     fi
 
-    local NAME=""
-    local VERSION=""
-    NAME=$(grep -E '^NAME=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2-)
-    VERSION=$(grep -E '^VERSION=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2-)
-    case "$NAME" in
-        '"'*'"')
-            NAME=${NAME#\"}
-            NAME=${NAME%\"}
-            ;;
-    esac
-    case "$NAME" in
-        "'"*"'")
-            NAME=${NAME#\'}
-            NAME=${NAME%\'}
-            ;;
-    esac
-    case "$VERSION" in
-        '"'*'"')
-            VERSION=${VERSION#\"}
-            VERSION=${VERSION%\"}
-            ;;
-    esac
-    case "$VERSION" in
-        "'"*"'")
-            VERSION=${VERSION#\'}
-            VERSION=${VERSION%\'}
-            ;;
-    esac
-
-    if [ -z "$NAME" ] || [ -z "$VERSION" ]; then
-        echo "Error: NAME or VERSION missing in metadata.txt"
-        return 1
-    fi
-
-    [[ "$NAME" =~ ^[a-zA-Z0-9._-]+$ ]] || { echo "Error: Invalid NAME (only alphanumeric, ., _, - allowed)"; return 1; }
-    [[ "$VERSION" =~ ^[a-zA-Z0-9._-]+$ ]] || { echo "Error: Invalid VERSION (only alphanumeric, ., _, - allowed)"; return 1; }
-    [[ "$NAME" =~ ^\.+$ ]] && { echo 'Error: Invalid NAME'; return 1; }
-    [[ "$VERSION" =~ ^\.+$ ]] && { echo 'Error: Invalid VERSION'; return 1; }
+    
+    NAME=$(grep -E '^NAME=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2- | tr -d '"')
+    VERSION=$(grep -E '^VERSION=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2- | tr -d '"')
 
     echo "Package to install:"
     echo -e "\e[34m$NAME   $VERSION\e[0m"
-    local usertrustsfile=""
-    read -rp "Do you want to continue with the installation? [y/N]: " usertrustsfile
-
-    usertrustsfile=$(printf '%s' "$usertrustsfile" | tr '[:upper:]' '[:lower:]')
-
+    read -p "Do you want to continue with the installation? [y/N]: " usertrustsfile
+    
+    usertrustsfile=$(echo "$usertrustsfile" | tr '[:upper:]' '[:lower:]')
+    
     if [[ "$usertrustsfile" != "y" && "$usertrustsfile" != "yes" ]]; then
         echo "Installation aborted by user"
         return 1
     fi
 
-    rm -rf -- "$tmp_dir"
-    trap - RETURN
-    INSTALL_TMP_DIR=""
+    [[ "$VERSION" =~ ^[a-zA-Z0-9.-]+$ ]] || { echo "Error: Invalid VERSION (only alphanumeric, ., _, - allowed)"; exit 1; }
+    rm -rf "$tmp_dir"
 
     echo "Installing $NAME $VERSION..."
 
-    if ! db_lock; then
-        return 1
-    fi
+    tar --exclude='metadata.txt' -xzvf "$pkg_archive" -C "$TARGET_ROOT" | 
+        sed -e 's|^\./||' -e 's|^\.||' | 
+        grep -v -E '(^/$|^$)' > "$MANIFEST_DIR/$NAME.list"
 
-    local tmp_manifest=""
-    local old_manifest_backup=""
-    tmp_manifest=$(mktemp -p "$DB_DIR") || {
-        echo 'Error: unable to create temp manifest'
-        db_unlock
-        return 1
-    }
-    chmod 600 -- "$tmp_manifest"
-    old_manifest_backup=$(mktemp -p "$DB_DIR") || {
-        echo 'Error: unable to create manifest backup'
-        rm -f -- "$tmp_manifest"
-        db_unlock
-        return 1
-    }
-    chmod 600 -- "$old_manifest_backup"
-    local had_old_manifest=0
-
-    if [ -f "$MANIFEST_DIR/$NAME.list" ]; then
-        cp -f "$MANIFEST_DIR/$NAME.list" "$old_manifest_backup" || {
-            rm -f -- "$tmp_manifest" "$old_manifest_backup"
-            db_unlock
-            return 1
-        }
-        had_old_manifest=1
-    fi
-
-    tar --no-same-owner --no-same-permissions --exclude='metadata.txt' --exclude='./metadata.txt' -xzvf "$pkg_archive" -C "$TARGET_ROOT" 2>/dev/null |
-        sed -e 's|^\./||' -e 's|^\.||' |
-        grep -Ev '(/$|^/$|^$)' > "$tmp_manifest"
-
-    local tar_status=${PIPESTATUS[0]}
-
-    if [ "$tar_status" -ne 0 ]; then
-        echo "Error: extraction failed, rolling back partial files"
-        echo 'Warning: overwritten files were not restored' >&2
-        local partial=""
-        local partial_path=""
-        while IFS= read -r partial || [ -n "$partial" ]; do
-            partial_path="${TARGET_ROOT%/}/$partial"
-            if [ -n "$partial" ] && { [ -f "$partial_path" ] || [ -L "$partial_path" ] || [ -p "$partial_path" ] || [ -S "$partial_path" ] || [ -b "$partial_path" ] || [ -c "$partial_path" ]; }; then
-                rm -f -- "$partial_path"
-            fi
-        done < "$tmp_manifest"
-        local rmdir_entry=""
-        while IFS= read -r rmdir_entry || [ -n "$rmdir_entry" ]; do
-            case "$rmdir_entry" in
-                */*)
-                    rmdir -- "${TARGET_ROOT%/}/$rmdir_entry" 2>/dev/null
-                    ;;
-            esac
-        done < <(tac "$tmp_manifest" 2>/dev/null || tail -r "$tmp_manifest" 2>/dev/null || cat -- "$tmp_manifest")
-        rm -f -- "$tmp_manifest"
-        if [ "$had_old_manifest" -eq 1 ]; then
-            mv -f -- "$old_manifest_backup" "$MANIFEST_DIR/$NAME.list" || {
-                echo 'Error: unable to restore manifest'
-            }
-        else
-            rm -f -- "$old_manifest_backup"
-        fi
-        db_unlock
-        return 1
-    fi
-
-    rm -f -- "$old_manifest_backup"
-    mv -f -- "$tmp_manifest" "$MANIFEST_DIR/$NAME.list" || {
-        echo 'Error: unable to install manifest'
-        rm -f -- "$tmp_manifest"
-        db_unlock
-        return 1
-    }
-
-    if ! db_upsert_entry "$NAME" "$VERSION"; then
-        db_unlock
-        return 1
-    fi
-    db_unlock
+    sed -i "/^$NAME /d" "$DB_FILE"
+    echo "$NAME $VERSION" >> "$DB_FILE"
 
     echo "Successfully installed $NAME $VERSION"
 }
@@ -380,64 +76,35 @@ remove_package() {
     check_sudo
     local pkg_name="$1"
 
-    if ! db_lock; then
-        return 1
-    fi
-
-    if ! pkg_exists "$pkg_name"; then
+    if ! grep -q "^$pkg_name " "$DB_FILE"; then
         echo "Error: Package '$pkg_name' is not installed."
-        db_unlock
-        return 1
+        exit 1
     fi
 
     echo "Removing $pkg_name"
 
     local manifest="$MANIFEST_DIR/$pkg_name.list"
     if [ -f "$manifest" ]; then
-        local file=""
-        local target_path=""
-        while IFS= read -r file || [ -n "$file" ]; do
-            case "$file" in
-                /*|../*|*/../*|*/..|..|.|'')
-                    continue
-                    ;;
-            esac
-            while case "$file" in ./*) true;; *) false;; esac; do
-                file=${file#./}
-            done
-            if [ -z "$file" ] || [ "$file" = '/' ] || [ "$file" = '.' ]; then
-                continue
-            fi
-            target_path="${TARGET_ROOT%/}/$file"
-            case "$target_path" in
-                "$DB_DIR"/*|"$MANIFEST_DIR"/*)
-                    continue
-                    ;;
-            esac
-            if [ "$target_path" = "$DB_FILE" ] || [ "$target_path" = "$DB_DIR" ] || [ "$target_path" = "$MANIFEST_DIR" ]; then
-                continue
-            fi
-            if [ -n "$file" ] && { [ -f "$target_path" ] || [ -L "$target_path" ]; }; then
-                rm -f -- "$target_path"
-                echo "Removed traces of $pkg_name from $file"
+        while read -r file; do
+            local target_path="${TARGET_ROOT%/}/$file"
+            echo "Removed traces of $pkg_name from $file"
+            
+            if [ -n "$file" ] && [ -f "$target_path" ]; then
+                rm -f "$target_path"
             elif [ -n "$file" ] && [ -d "$target_path" ]; then
-                rmdir -- "$target_path" 2>/dev/null
+                rmdir "$target_path" 2>/dev/null
             fi
-        done < <(tac "$manifest" 2>/dev/null || tail -r "$manifest" 2>/dev/null || cat -- "$manifest")
-
-        rm -f -- "$manifest"
+        done < <(tac "$manifest")
+        
+        rm -f "$manifest"
     fi
 
-    if ! db_remove_entry "$pkg_name"; then
-        db_unlock
-        return 1
-    fi
-    db_unlock
+    sed -i "/^$pkg_name /d" "$DB_FILE"
     echo "Successfully removed $pkg_name."
 }
 
 list_packages() {
-    cat -- "$DB_FILE"
+    cat $DB_FILE
 }
 
 latte_version() {
@@ -448,39 +115,19 @@ build_package() {
     local inputdir="${1%/}"
     local outputdir="$2"
 
-    if [ -z "$inputdir" ] || [ -z "$outputdir" ]; then
-        echo "directory $inputdir not found"
-        return 1
-    fi
-
     if [[ ! -d "$inputdir" ]]; then
         echo "directory $inputdir not found"
         return 1
     fi
 
-    if [ ! -f "$inputdir/metadata.txt" ]; then
-        echo "Error: metadata.txt not found in $inputdir"
-        return 1
-    fi
-
     local final_archive="$outputdir"
 
-    case "$final_archive" in
-        *.latte)
-            ;;
-        *)
-            final_archive="$final_archive.latte"
-            ;;
-    esac
-
-    mkdir -p -- "$(dirname -- "$final_archive")"
+        final_archive="$outputdir"
+        mkdir -p "$(dirname "$final_archive" + ".latte")"
 
     echo "Packaging bundle from '$inputdir'..."
-
+    
     if tar -czf "$final_archive" -C "$inputdir" .; then
-        if command -v sha256sum >/dev/null 2>&1; then
-            sha256sum "$final_archive" > "$final_archive.sha256"
-        fi
         echo "Successfully built package: $final_archive"
         return 0
     else
@@ -491,7 +138,7 @@ build_package() {
 
 
 if [ "$1" == "install" ]; then
-    install_package "$2" "$3" "$4"
+    install_package "$2"
 elif [ "$1" == "list" ]; then
     list_packages
 elif [ "$1" == "remove" ]; then
