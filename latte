@@ -9,8 +9,9 @@ INSTALL_TMP_DIR=""
 
 check_sudo() {
     if (($EUID != 0)); then
-        echo "Run as root to use Latte"
-        echo "placeholder"
+        local localfileinstall=""
+        read -rp "Do you want to install the file locally? [y/N]: " localfileinstall
+        TARGET_ROOT="~/.local/"
         exit 1
     fi
 }
