@@ -7,11 +7,13 @@ MANIFEST_DIR="$DB_DIR/manifests"
 DB_FILE="$DB_DIR/installed.db"
 INSTALL_TMP_DIR=""
 
-
-if (($EUID != 0)); then
-    echo "Run as root to use Latte"
-    exit 1
-fi
+check_sudo() {
+    if (($EUID != 0)); then
+        echo "Run as root to use Latte"
+        echo "placeholder"
+        exit 1
+    fi
+}
 
 mkdir -p "$MANIFEST_DIR"
 touch "$DB_FILE"
@@ -190,6 +192,7 @@ verify_package_checksum() {
 }
 
 install_package() {
+    check_sudo
     local pkg_archive="$1"
     local install_flag="$2"
     local extra_flag="$3"
@@ -495,11 +498,12 @@ elif [ "$1" == "version" ]; then
     latte_version
 elif [ "$1" == "build" ]; then
     build_package "$2" "$3"
-else
+elif [ "$1" == "help" ]; then
     echo "Usage:
     latte install <package.latte>
     latte list
     latte remove <package>
     latte version
-    latte build <input_directory> <output_directory>"
+    latte build <input_directory> <output_directory>
+    latte help"
 fi
