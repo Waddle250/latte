@@ -10,8 +10,27 @@ check_sudo() {
     if (($EUID != 0)); then
         local localfileinstall=""
         read -rp "Do you want to operate locally? [y/N]: " localfileinstall
-        TARGET_ROOT="~/.local/"
+        if [[ "$usertrustsfile" != "y" && "$usertrustsfile" != "yes" ]]; then
+            TARGET_ROOT="~/.local/"
+            return 1
+        fi
+        echo "Operation aborted by user"
         exit 1
+    fi
+}
+
+verify_checksum( $lattefile $metasum ) {
+    filesum=$(sha256 lattefile)
+    if [ $filesum==$metasum ]; then
+        echo "File has a valid checksum"
+        echo "Proceeding..."
+    else
+        echo "File has an invalid checksum"
+        read -rp "Do you want install anyways? [y/N]: " useracceptchecksumrisk
+        if [[ "$useracceptchecksumrisk" != "y" && "$useracceptchecksumrisk" != "yes" ]]; then
+            echo "Operation aborted by user"
+            exit 1
+        fi
     fi
 }
 
@@ -45,6 +64,7 @@ install_package() {
     
     NAME=$(grep -E '^NAME=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2- | tr -d '"')
     VERSION=$(grep -E '^VERSION=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2- | tr -d '"')
+    CHECKSUM=$(grep -E '^CHECKSUM=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2- | tr -d '"')
 
     echo "Package to install:"
     echo -e "\e[34m$NAME   $VERSION\e[0m"
@@ -128,7 +148,7 @@ build_package() {
     echo "Packaging bundle from '$inputdir'..."
     
     if tar -czf "$final_archive" -C "$inputdir" .; then
-        echo "Successfully built package: $final_archive"
+        echo "Successfully built package at: $final_archive"
         return 0
     else
         echo "Error: Failed to create .latte package."
