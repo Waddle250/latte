@@ -11,7 +11,10 @@ check_sudo() {
         local localfileinstall=""
         read -rp "Do you want to operate locally? [y/N]: " localfileinstall
         if [[ "$usertrustsfile" != "y" && "$usertrustsfile" != "yes" ]]; then
-            $TARGET_ROOT="~/.local/"
+            TARGET_ROOT="~/.local/"
+            DB_DIR="$TARGET_ROOT/var/lib/latte"
+            MANIFEST_DIR="$DB_DIR/manifests"
+            DB_FILE="$DB_DIR/installed.db"
             return 1
         fi
         echo "Operation aborted by user"
