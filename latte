@@ -11,7 +11,7 @@ check_sudo() {
         local localfileinstall=""
         read -rp "Do you want to operate locally? [y/N]: " localfileinstall
         if [[ "$usertrustsfile" != "y" && "$usertrustsfile" != "yes" ]]; then
-            TARGET_ROOT="~/.local/"
+            $TARGET_ROOT="~/.local/"
             return 1
         fi
         echo "Operation aborted by user"
