@@ -139,6 +139,17 @@ latte_version() {
     echo "Latte 0.4.0 stable | Capuccino"
 }
 
+inspect_package() {
+    local packagetoinspect = "${1%/}"
+
+    echo "Contents of package are:"
+    cat packagetoinspect
+    echo ""
+    echo "CHECKSUM:"
+    (sha256sum packagetoinspect)
+
+}
+
 build_package() {
     local inputdir="${1%/}"
     local outputdir="$2"
@@ -175,6 +186,8 @@ elif [ "$1" == "version" ]; then
     latte_version
 elif [ "$1" == "build" ]; then
     build_package "$2" "$3"
+elif [ "$1" == "inspect" ]; then
+    package_contents
 elif [ "$1" == "help" ]; then
     echo "Usage:
     latte install <package.latte>
@@ -182,5 +195,6 @@ elif [ "$1" == "help" ]; then
     latte remove <package>
     latte version
     latte build <input_directory> <output_directory>
+    latte inspect <latte_file>
     latte help"
 fi
