@@ -67,7 +67,7 @@ install_package() {
     
     NAME=$(grep -E '^NAME=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2- | tr -d '"')
     VERSION=$(grep -E '^VERSION=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2- | tr -d '"')
-    if [ "$3" == "safemode" ]; then
+    if [ "$2" == "safemode" ]; then
         CHECKSUM=$(grep -E '^CHECKSUM=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2- | tr -d '"')
         echo "This is not recommended as checksums are still in development"
     else
