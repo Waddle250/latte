@@ -34,5 +34,3 @@ Feel free to uninstall latte if you feel like doing so. It's not like I care... 
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/chart?repos=waddle250/latte&type=date&legend=top-left)](https://www.star-history.com/?repos=waddle250%2Flatte&type=date&legend=top-left)
-
-![Static Badge](https://img.shields.io/badge/Active)
