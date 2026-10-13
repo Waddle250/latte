@@ -11,7 +11,7 @@ check_sudo() {
         local localfileinstall=""
         read -rp "Do you want to operate locally? [y/N]: " localfileinstall
         if [[ "$usertrustsfile" != "y" && "$usertrustsfile" != "yes" ]]; then
-            TARGET_ROOT="~/.local/"
+            TARGET_ROOT="$HOME/.local/"
             DB_DIR="$TARGET_ROOT/var/lib/latte"
             MANIFEST_DIR="$DB_DIR/manifests"
             DB_FILE="$DB_DIR/installed.db"
@@ -19,21 +19,6 @@ check_sudo() {
         fi
         echo "Operation aborted by user"
         exit 1
-    fi
-}
-
-verify_checksum( $lattefile $metasum ) {
-    filesum=$(sha256 lattefile)
-    if [ $filesum==$metasum ]; then
-        echo "File has a valid checksum"
-        echo "Proceeding..."
-    else
-        echo "File has an invalid checksum"
-        read -rp "Do you want install anyways? [y/N]: " useracceptchecksumrisk
-        if [[ "$useracceptchecksumrisk" != "y" && "$useracceptchecksumrisk" != "yes" ]]; then
-            echo "Operation aborted by user"
-            exit 1
-        fi
     fi
 }
 
@@ -143,7 +128,7 @@ inspect_package() {
     local packagetoinspect = "${1%/}"
 
     echo "Contents of package are:"
-    cat packagetoinspect
+    tar -tf packagetoinspect
     echo ""
     echo "CHECKSUM:"
     (sha256sum packagetoinspect)
