@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-The version of thisproject that is supported for security updates is only the *LATEST* version
+The version of this project that is supported for security updates is only the *LATEST* version
 
 ## Reporting a Vulnerability
 
