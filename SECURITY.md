@@ -2,13 +2,7 @@
 
 ## Supported Versions
 
-The versions of the project that are supported for security updates are:
-
-| Version | Supported          |
-| ------- | ------------------ |
-| <0.9.0  |         :x:        |
-| 1.0.0 + | :heavy_check_mark: |
-
+The version of thisproject that is supported for security updates is only the *LATEST* version
 
 ## Reporting a Vulnerability
 
