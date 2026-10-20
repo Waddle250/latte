@@ -37,4 +37,4 @@ Feel free to uninstall latte if you feel like doing so. It's not like I care... 
 
 [![Star History Chart](https://api.star-history.com/chart?repos=waddle250/latte&type=date&legend=top-left)](https://www.star-history.com/?repos=waddle250%2Flatte&type=date&legend=top-left)
 
-![Static Badge](https://img.shields.io/badge/Development-Active-brightgreen) ![Static Badge](https://img.shields.io/badge/Status-Beta-blue) ![Static Badge](https://img.shields.io/badge/Lazy-Yes-red) ![Static Badge](https://img.shields.io/badge/Language-Bash-brown)
+![Static Badge](https://img.shields.io/badge/Development-Active-brightgreen) ![Static Badge](https://img.shields.io/badge/Status-Beta-blue) ![Static Badge](https://img.shields.io/badge/Lazy-Yes-red) ![Static Badge](https://img.shields.io/badge/Language-Bash-purple)
