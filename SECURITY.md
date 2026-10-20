@@ -1,5 +1,7 @@
 # Security Policy
 
+## CHECKSUMS ARE NOT PLANNED
+
 ## Supported Versions
 
 The version of this project that is supported for security updates is only the *LATEST* version
