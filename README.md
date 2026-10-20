@@ -5,6 +5,8 @@
 
 GOAL: 100% Shell
 
+Also, no, I'm not adding checksums
+
 Latte is a package manager that can install .latte files. Anyways, you can use any of these commands so far on the latest release:
 
 `latte install <path-to-package.latte>`
