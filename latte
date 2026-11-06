@@ -122,10 +122,10 @@ inspect_package() {
     local packagetoinspect = "${1%/}"
 
     echo "Contents of package are:"
-    tar -tf packagetoinspect
+    tar -tf $packagetoinspect
     echo ""
     echo "CHECKSUM:"
-    (sha256sum packagetoinspect)
+    (sha256sum $packagetoinspect)
 
 }
 
