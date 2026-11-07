@@ -14,7 +14,7 @@ check_sudo() {
             TARGET_ROOT="$HOME/.local/"
             DB_DIR="$TARGET_ROOT/var/lib/latte"
             MANIFEST_DIR="$DB_DIR/manifests"
-            DB_FILE="$DB_DIR/installed.db"
+            $DB_FILE="$DB_DIR/installed.db"
             return 1
         fi
         echo "Operation aborted by user"
@@ -23,10 +23,10 @@ check_sudo() {
 }
 
 mkdir -p "$MANIFEST_DIR"
-touch "$DB_FILE"
 
 install_package() {
     check_sudo
+    touch "$DB_FILE"
     local pkg_archive="$1"
 
     if [ ! -f "$pkg_archive" ]; then
