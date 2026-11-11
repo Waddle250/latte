@@ -19,7 +19,8 @@ Latte is a package manager that can install .latte files. Anyways, you can use a
 
 `latte build <source-directory> <output-directory>`
 
-`latte inspect <file>`
+`latte inspect <file>` (semifunctional)
+
 Putting in any invalid latte option will print the list of valid commands.
 
 All of these commands require root permissions, and for good reason. If you'd like to ask for any features or report bugs, just ask under the Issues section. I'll *probably* get to it by the time the sun blows up. (I’ll get to it when I can)
