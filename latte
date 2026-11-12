@@ -10,15 +10,16 @@ check_sudo() {
     if (($EUID != 0)); then
         local localfileinstall=""
         read -rp "Do you want to operate locally? [y/N]: " localfileinstall
-        if [[ "$localfileinstall" != "y" && "$localfileinstall" != "yes" ]]; then
-            $TARGET_ROOT="$HOME/.local/"
-            $DB_DIR="$TARGET_ROOT/var/lib/latte"
-            $MANIFEST_DIR="$DB_DIR/manifests"
-            $DB_FILE="$DB_DIR/installed.db"
-            return 1
+        localfileinstall=$(echo "$localfileinstall" | tr '[:upper:]' '[:lower:]')
+        if [[ "$localfileinstall" == "y" || "$localfileinstall" == "yes" ]]; then
+            TARGET_ROOT="$HOME/.local"
+            DB_DIR="$TARGET_ROOT/var/lib/latte"
+            MANIFEST_DIR="$DB_DIR/manifests"
+            DB_FILE="$DB_DIR/installed.db"
+        else
+            echo "Operation aborted by user"
+            exit 1
         fi
-        echo "Operation aborted by user"
-        exit 1
     fi
     mkdir -p "$MANIFEST_DIR"
 }
@@ -49,7 +50,6 @@ install_package() {
     fi
 
     
-    NAME=$(grep -E '^NAME=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2- | tr -d '"')
     VERSION=$(grep -E '^VERSION=' "$tmp_dir/metadata.txt" | head -1 | cut -d= -f2- | tr -d '"')
 
     echo "Package to install:"
@@ -64,6 +64,7 @@ install_package() {
         return 1
     fi
 
+    [[ "$NAME" =~ ^[a-zA-Z0-9._-]+$ ]] || { echo "Error: Invalid NAME (only alphanumeric, ., _, - allowed)"; exit 1; }
     [[ "$VERSION" =~ ^[a-zA-Z0-9.-]+$ ]] || { echo "Error: Invalid VERSION (only alphanumeric, ., _, - allowed)"; exit 1; }
     rm -rf "$tmp_dir"
 
