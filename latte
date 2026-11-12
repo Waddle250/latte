@@ -167,7 +167,7 @@ elif [ "$1" == "version" ]; then
 elif [ "$1" == "build" ]; then
     build_package "$2" "$3"
 elif [ "$1" == "inspect" ]; then
-    inspect_package
+    inspect_package $2
 elif [ "$1" == "help" ]; then
     echo "Usage:
     latte install <package.latte>
