@@ -10,7 +10,7 @@ check_sudo() {
     if (($EUID != 0)); then
         local localfileinstall=""
         read -rp "Do you want to operate locally? [y/N]: " localfileinstall
-        if [[ "$usertrustsfile" != "y" && "$usertrustsfile" != "yes" ]]; then
+        if [[ "$localfileinstall" != "y" && "$localfileinstall" != "yes" ]]; then
             $TARGET_ROOT="$HOME/.local/"
             $DB_DIR="$TARGET_ROOT/var/lib/latte"
             $MANIFEST_DIR="$DB_DIR/manifests"
