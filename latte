@@ -54,6 +54,7 @@ install_package() {
 
     echo "Package to install:"
     echo -e "\e[34m$NAME     $VERSION\e[0m"
+    echo "Names and version numbers with a '/' in them are unsafe, and you should contact the distributor with a security concern if you see any in a name or version"
     read -p "Do you want to continue with the installation? [y/N]: " usertrustsfile
     
     usertrustsfile=$(echo "$usertrustsfile" | tr '[:upper:]' '[:lower:]')
