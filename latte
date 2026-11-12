@@ -20,9 +20,8 @@ check_sudo() {
         echo "Operation aborted by user"
         exit 1
     fi
+    mkdir -p "$MANIFEST_DIR"
 }
-
-mkdir -p "$MANIFEST_DIR"
 
 install_package() {
     check_sudo
