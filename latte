@@ -120,7 +120,7 @@ latte_version() {
 }
 
 inspect_package() {
-    local packagetoinspect = "${1%/}"
+    local packagetoinspect="${1%/}"
 
     echo "Contents of package are:"
     tar -tf $packagetoinspect
@@ -142,7 +142,7 @@ build_package() {
     local final_archive="$outputdir"
 
         final_archive="$outputdir"
-        mkdir -p "$(dirname "$final_archive" + ".latte")"
+        mkdir -p "$(dirname "$final_archive")"
 
     echo "Packaging bundle from '$inputdir'..."
     
