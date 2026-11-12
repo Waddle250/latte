@@ -110,6 +110,7 @@ remove_package() {
 }
 
 list_packages() {
+    check_sudo
     cat $DB_FILE
 }
 
